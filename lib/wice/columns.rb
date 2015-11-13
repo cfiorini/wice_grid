@@ -241,6 +241,17 @@ module Wice #:nodoc:
         false
       end
 
+      def remove_ordering_from_params(params) #:nodoc:
+        return params if params[@grid.name].blank?
+
+        _params = params.to_hash
+
+        _params[@grid.name].delete(Wice::GridRenderer::ORDER_PARAMETER_NAME)
+        _params[@grid.name].delete(Wice::GridRenderer::ORDER_DIRECTION_PARAMETER_NAME)
+
+        ActionController::Parameters.new(_params)
+      end
+
       protected
 
       def form_parameter_template(v) #:nodoc:

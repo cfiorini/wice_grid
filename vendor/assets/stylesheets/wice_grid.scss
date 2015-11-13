@@ -39,9 +39,9 @@
 
 .wice-grid{
 
-  .desc,  .asc{
-    padding-right: 18px;
+  .desc:first-child, .asc:first-child {
     text-decoration:none;
+    padding-right: 8px;
   }
 
   .clickable.select-all, .clickable.deselect-all{

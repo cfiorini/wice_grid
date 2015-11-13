@@ -315,23 +315,29 @@ module Wice
             end
           end
 
-          col_link = link_to(
-            (column_name +
-              if arrow_class
-                ' ' + content_tag(:i, '', class: "fa fa-arrow-#{arrow_class}")
-              else
-                ''
-              end).html_safe,
-
+          col_link = []
+          col_link << link_to(
+            column_name ,
             rendering.column_link(
               column,
               direction,
-              params,
+              (grid.ordered_by?(column) ? column.remove_ordering_from_params(params) : params),
               options[:extra_request_parameters]
             ),
             class: link_style)
 
-          grid.output_buffer << content_tag(:th, col_link, opts)
+
+          col_link << link_to(
+              content_tag(:i, '', class: "fa fa-arrow-#{arrow_class}"),
+              rendering.column_link_arrow(
+                  column,
+                  direction,
+                  params,
+                  options[:extra_request_parameters]
+              ),
+              class: link_style) if grid.ordered_by?(column)
+
+          grid.output_buffer << content_tag(:th, col_link.join('').html_safe, opts)
 
         else
           if reuse_last_column_for_filter_buttons && last

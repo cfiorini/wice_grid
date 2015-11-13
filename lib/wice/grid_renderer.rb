@@ -568,29 +568,54 @@ module Wice
     end
 
     def column_link(column, direction, params, extra_parameters = {})   #:nodoc:
-      column_attribute_name = if column.attribute.index('.') || column.main_table
-        column.attribute
-      else
-        column.table_alias_or_table_name + '.' + column.attribute
+
+      query_params = set_query_params_for_link
+
+      unless @grid.ordered_by?(column)
+        add_ordering_to_query_params(column, direction, query_params)
       end
 
-      query_params = { @grid.name => {
-        ORDER_PARAMETER_NAME           => column_attribute_name,
-        ORDER_DIRECTION_PARAMETER_NAME => direction
-      } }
+      merge_column_link_query_params(params, query_params, extra_parameters)
+    end
 
-      cleaned_params =  Wice::WgHash.deep_clone params
+    def column_link_arrow(column, direction, params, extra_parameters = {})   #:nodoc:
+
+      query_params = set_query_params_for_link
+
+      add_ordering_to_query_params(column, direction, query_params)
+      merge_column_link_query_params(params, query_params, extra_parameters)
+    end
+
+    protected
+
+    def set_query_params_for_link #:nodoc:
+      { @grid.name => {} }
+    end
+
+    def add_ordering_to_query_params(column, direction, query_params) #:nodoc:
+      column_attribute_name = if column.attribute.index('.') || column.main_table
+                                column.attribute
+                              else
+                                column.table_alias_or_table_name + '.' + column.attribute
+                              end
+
+      query_params[@grid.name][ORDER_PARAMETER_NAME] = column_attribute_name
+      query_params[@grid.name][ORDER_DIRECTION_PARAMETER_NAME] = direction
+    end
+
+
+    def merge_column_link_query_params(params, query_params, extra_parameters) #:nodoc:
+      cleaned_params = Wice::WgHash.deep_clone params
       cleaned_params.merge!(extra_parameters)
 
       cleaned_params.delete(:controller)
       cleaned_params.delete(:action)
 
-      query_params = Wice::WgHash.rec_merge(cleaned_params, query_params)
+      _query_params = Wice::WgHash.rec_merge(cleaned_params, query_params).to_query
 
-      '?' + query_params.to_query
+      _query_params.present? ? '?' + _query_params : nil
     end
 
-    protected
 
     def filter_columns(method_name = nil) #:nodoc:
       method_name ? @columns.select(&method_name) : @columns
